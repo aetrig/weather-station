@@ -4,11 +4,20 @@ using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
+using dotenv.net;
 
-string broker = "test.mosquitto.org";
+var root = Directory.GetCurrentDirectory();
+Console.WriteLine(root);
+var dotenv = Path.Combine(root.Replace(@"bin\Debug\net8.0", ""), ".env");
+Console.WriteLine(dotenv);
+//DotEnv.Load(options: new DotEnvOptions(envFilePaths: new[] { dotenv.ToString() }));
+var envs = DotEnv.Read(options: new DotEnvOptions(envFilePaths: new[] { dotenv.ToString() }));
+var keys = envs.Keys;
+
+string broker = envs["BROKER_IP"];
 int port = 1883;
 string clientId = "mqtt-explorer-6c1ebc07";
-string topic = "c200_temperature1";
+string topic = "test_topic";
 
 var factory = new MqttFactory();
 var mqttClient = factory.CreateMqttClient();
@@ -16,6 +25,7 @@ var options = new MqttClientOptionsBuilder()
 	.WithTcpServer(broker, port)
 	.WithClientId(clientId)
 	.WithCleanSession()
+	.WithCredentials(envs["USERNAME"], envs["PASS"])
 	.Build();
 
 var subscribingOptions = new MqttClientSubscribeOptionsBuilder()
