@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="dotenv.net" Version="3.2.1" />
+    <PackageReference Include="InfluxDB3.Client" Version="1.2.0" />
     <PackageReference Include="MQTTnet" Version="3.0.5" />
   </ItemGroup>
 

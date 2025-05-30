@@ -1,0 +1,1 @@
+idb3.003.lIè—P{"catalog_batch":{"Node":{"time_ns":1748616999080663900,"node_catalog_id":0,"node_id":"weather-station","ops":[{"RegisterNode":{"node_id":"weather-station","instance_id":"3ecf8a5c-c35b-4301-8775-d27ef6b4cdf7","registered_time_ns":1748616999080663900,"core_count":12,"mode":["Core"],"process_uuid":"53069825-482c-435b-9db9-8ab78903da44"}}]}},"sequence_number":2}
