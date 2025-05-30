@@ -1,3 +1,4 @@
 {
-	"dotnet.defaultSolution": "weather-station.sln"
+	"dotnet.defaultSolution": "weather-station.sln",
+	"discord.enabled": true
 }
