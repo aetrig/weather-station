@@ -2,9 +2,6 @@
 using InfluxDB3.Client;
 using InfluxDB3.Client.Config;
 using InfluxDB3.Client.Write;
-
-
-// // See https://aka.ms/new-console-template for more information
 using System.Text;
 using MQTTnet;
 using MQTTnet.Client;

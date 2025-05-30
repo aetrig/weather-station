@@ -1,0 +1,57 @@
+﻿@page "/influx"
+@using weatherStationWeb.Services
+@inject InfluxQueryService InfluxQueryService
+@rendermode InteractiveServer
+<h3>InfluxDB Weather Data</h3>
+
+<button @onclick="LoadData">Refresh</button>
+
+@if (rows is null)
+{
+	<p><em>Loading...</em></p>
+}
+else if (rows.Count == 0)
+{
+	<p>No data found.</p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Sensor</th>
+				<th>Temperature</th>
+				<th>Humidity</th>
+				<th>Pressure</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var row in rows)
+			{
+				<tr>
+					<td>@row.sensor</td>
+					<td>@row.temperature</td>
+					<td>@row.humidity</td>
+					<td>@row.pressure</td>
+					<td>@row.time</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+	private List<InfluxRow>? rows;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+
+	private async Task LoadData()
+	{
+		rows = await InfluxQueryService.QueryAsync();
+		StateHasChanged();
+	}
+}
