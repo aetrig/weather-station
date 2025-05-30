@@ -23,7 +23,7 @@ var keys = envs.Keys;
 
 //Setting up database connection
 const string host = "http://localhost:8181";
-const string token = "apiv3_6H81no4cbN6wfeDlzqwnnCPKnyfrwNF4kbRL0nHU_df-q-j8MIjdObqen2viebVuYBAX5N9JRyZivF6mqPXokg";
+string token = envs["INFLUX_AUTH_TOKEN"];
 const string database = "weather-station";
 
 using var InfluxDBclient = new InfluxDBClient($"{host}?token={token}&database={database}");
