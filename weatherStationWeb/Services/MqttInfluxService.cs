@@ -15,6 +15,8 @@ public class MqttInfluxService : BackgroundService
 	private IMqttClient mqttClient = null!;
 	private InfluxDBClient DbClient = null!;
 
+	public event Action? newDataReceived;
+
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
 		DotEnv.Load();
@@ -30,6 +32,7 @@ public class MqttInfluxService : BackgroundService
 		int port = 1883;
 		string clientId = "mqtt-explorer-6c1ebc07";
 		string topic = "weather/#";
+
 
 		var factory = new MqttFactory();
 		var mqttClient = factory.CreateMqttClient();
@@ -48,6 +51,8 @@ public class MqttInfluxService : BackgroundService
 
 			var point = PointData.Measurement("weather").SetTag("sensor", splitTopic[1]).SetField(splitTopic[2], payload).SetTimestamp(DateTime.UtcNow);
 			await DbClient.WritePointAsync(point: point);
+
+			newDataReceived?.Invoke();
 		});
 
 		var connectResult = await mqttClient.ConnectAsync(options, CancellationToken.None);

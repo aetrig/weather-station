@@ -1,4 +1,5 @@
 using weatherStationWeb.Components;
+using weatherStationWeb.Hubs;
 using weatherStationWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,8 +9,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddHostedService<MqttInfluxService>();
+// builder.Services.AddHostedService(sp => sp.GetRequiredService<MqttInfluxService>());
+// builder.Services.AddSignalR();
 builder.Services.AddSingleton<InfluxQueryService>();
+
 var app = builder.Build();
+
+// app.MapHub<mqttHub>("/Hub");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

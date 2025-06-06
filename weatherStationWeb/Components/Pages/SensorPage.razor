@@ -1,0 +1,168 @@
+@page "/{sensorName}"
+@using weatherStationWeb.Services
+@using ApexCharts
+@inject InfluxQueryService InfluxQueryService
+@rendermode InteractiveServer
+
+@code {
+	[Parameter]
+	required public string sensorName { get; set; }
+
+	private List<InfluxRow> sensorData = new();
+	private bool afterFirstRender = false;
+
+	private ApexChart<InfluxRow> temperatureChart = new();
+	private ApexChart<InfluxRow> pressureChart = new();
+	private ApexChart<InfluxRow> humidityChart = new();
+	private ApexChart<InfluxRow> windSpeedChart = new();
+
+	private ApexChartOptions<InfluxRow> chartTemperatureOptions = new()
+	{
+		Xaxis = new()
+		{
+			Type = XAxisType.Datetime,
+			Labels = new XAxisLabels()
+			{
+				Format = "dd MMM yyyy, HH:mm:ss"
+			}
+		}
+	};
+	private ApexChartOptions<InfluxRow> chartHumidityOptions = new()
+	{
+		Xaxis = new()
+		{
+			Type = XAxisType.Datetime,
+			Labels = new XAxisLabels()
+			{
+				Format = "dd MMM yyyy, HH:mm:ss"
+			}
+		}
+	};
+	private ApexChartOptions<InfluxRow> chartPressureOptions = new()
+	{
+		Xaxis = new()
+		{
+			Type = XAxisType.Datetime,
+			Labels = new XAxisLabels()
+			{
+				Format = "dd MMM yyyy, HH:mm:ss"
+			}
+		}
+	};
+	private ApexChartOptions<InfluxRow> chartWindSpeedOptions = new()
+	{
+		Xaxis = new()
+		{
+			Type = XAxisType.Datetime,
+			Labels = new XAxisLabels()
+			{
+				Format = "dd MMM yyyy, HH:mm:ss"
+			}
+		}
+	};
+	protected override async Task OnInitializedAsync()
+	{
+		await Task.Delay(1);
+		await LoadData();
+		afterFirstRender = true;
+	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await Task.Delay(100);
+			await RefreshCharts();
+		}
+	}
+	private async Task RefreshCharts()
+	{
+		if (afterFirstRender)
+		{
+			await temperatureChart.RenderAsync();
+			await pressureChart.RenderAsync();
+			await humidityChart.RenderAsync();
+			await windSpeedChart.RenderAsync();
+		}
+	}
+
+	private async Task LoadData()
+	{
+		sensorData = await InfluxQueryService.QueryAsync();
+		sensorData = sensorData.Where(row => row.sensor == sensorName).ToList();
+		StateHasChanged();
+	}
+}
+
+<button @onclick=@( async () => { await LoadData(); await RefreshCharts(); })>Refresh</button>
+
+<div>
+	<h3>Newest Data</h3>
+	Temperature: @(sensorData!.Where(row => row.temperature != null).Count() == 0 ? "No Data" : sensorData!.Where(row =>
+		row.temperature
+		!=
+		null).OrderByDescending(row => row.time).First().temperature + " °C")
+	<br>
+	Humidity: @(sensorData!.Where(row => row.humidity != null).Count() == 0 ? "No Data" : sensorData!.Where(row =>
+		row.humidity !=
+		null).OrderByDescending(row => row.time).First().humidity + " %")
+	<br>
+	Pressure: @(sensorData!.Where(row => row.pressure != null).Count() == 0 ? "No Data" : sensorData!.Where(row =>
+		row.pressure !=
+		null).OrderByDescending(row => row.time).First().pressure + " hPa")
+	<br>
+	Wind Speed: @(sensorData!.Where(row => row.wind_speed != null).Count() == 0 ? "No Data" : sensorData!.Where(row =>
+		row.wind_speed !=
+		null).OrderByDescending(row => row.time).First().wind_speed + " m/s")
+	<br>
+</div>
+
+
+
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<ApexChart TItem="InfluxRow" Title="Temperature [°C]" Options="@chartTemperatureOptions"
+				@ref="temperatureChart">
+
+				<ApexPointSeries TItem="InfluxRow"
+					Items="sensorData!.Where(row => row.temperature != null).OrderBy(row => row.time)"
+					Name="Temperature" SeriesType="SeriesType.Line" XValue="e => e.time.ToLocalTime()"
+					YValue="e => (decimal) e.temperature!" />
+
+			</ApexChart>
+		</div>
+		<div class="col">
+			<ApexChart TItem="InfluxRow" Title="Humidity [%]" Options="@chartHumidityOptions" @ref="humidityChart">
+
+				<ApexPointSeries TItem="InfluxRow"
+					Items="sensorData!.Where(row => row.humidity != null).OrderBy(row => row.time)" Name="Humidity"
+					SeriesType="SeriesType.Line" XValue="e => e.time.ToLocalTime()"
+					YValue="e => (decimal) e.humidity!" />
+
+			</ApexChart>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col">
+			<ApexChart TItem="InfluxRow" Title="Pressure [hPa]" Options="@chartPressureOptions" @ref="pressureChart">
+
+				<ApexPointSeries TItem="InfluxRow"
+					Items="sensorData!.Where(row => row.pressure != null).OrderBy(row => row.time)" Name="Pressure"
+					SeriesType="SeriesType.Line" XValue="e => e.time.ToLocalTime()"
+					YValue="e => (decimal) e.pressure!" />
+
+			</ApexChart>
+		</div>
+		<div class="col">
+			<ApexChart TItem="InfluxRow" Title="Wind Speed [m/s]" Options="@chartWindSpeedOptions"
+				@ref="windSpeedChart">
+
+				<ApexPointSeries TItem="InfluxRow"
+					Items="sensorData!.Where(row => row.wind_speed != null).OrderBy(row => row.time)" Name="Wind Speed"
+					SeriesType="SeriesType.Line" XValue="e => e.time.ToLocalTime()"
+					YValue="e => (decimal) e.wind_speed!" />
+
+			</ApexChart>
+		</div>
+	</div>
+</div>

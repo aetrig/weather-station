@@ -22,27 +22,41 @@ public class InfluxQueryService
 	{
 		var rows = new List<InfluxRow>();
 
-		const string sql = "SELECT sensor,temperature,humidity,pressure,time FROM weather ORDER BY time DESC";
+		const string sql = "SELECT sensor,temperature,humidity,pressure,wind_speed,time FROM weather ORDER BY time DESC";
 		await foreach (var row in client.Query(query: sql))
 		{
 			rows.Add(new InfluxRow
 			{
 				sensor = row[0]?.ToString() ?? "",
-				temperature = double.Parse(row[1]?.ToString() ?? "0.0"),
-				humidity = double.Parse(row[2]?.ToString() ?? "0.0"),
-				pressure = double.Parse(row[3]?.ToString() ?? "0.0"),
-				time = DateTime.UnixEpoch.AddTicks((long)(BigInteger)(row[4] ?? 0) / 100)
+				temperature = row[1] is null ? null : double.Parse(row[1]!.ToString()!),
+				humidity = row[2] is null ? null : double.Parse(row[2]!.ToString()!),
+				pressure = row[3] is null ? null : double.Parse(row[3]!.ToString()!),
+				wind_speed = row[4] is null ? null : double.Parse(row[4]!.ToString()!),
+				time = DateTime.UnixEpoch.AddTicks((long)(BigInteger)(row[5] ?? 0) / 100)
 			});
 		}
 		return rows;
+	}
+
+	public async Task<List<string>> QuerySensors()
+	{
+		var sensorList = new List<string>();
+
+		const string sql = "SELECT DISTINCT sensor FROM weather ORDER BY sensor";
+		await foreach (var row in client.Query(query: sql))
+		{
+			sensorList.Add(row[0]?.ToString() ?? "");
+		}
+		return sensorList;
 	}
 }
 
 public class InfluxRow
 {
 	public string sensor { get; set; } = "";
-	public double temperature { get; set; } = 0.0;
-	public double humidity { get; set; } = 0.0;
-	public double pressure { get; set; } = 0.0;
+	public double? temperature { get; set; } = null;
+	public double? humidity { get; set; } = null;
+	public double? pressure { get; set; } = null;
+	public double? wind_speed { get; set; } = null;
 	public DateTime time { get; set; }
 }

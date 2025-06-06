@@ -2,9 +2,25 @@
 @using weatherStationWeb.Services
 @inject InfluxQueryService InfluxQueryService
 @rendermode InteractiveServer
+
+@code {
+	private List<InfluxRow>? rows;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+
+	private async Task LoadData()
+	{
+		rows = await InfluxQueryService.QueryAsync();
+		StateHasChanged();
+	}
+}
+
 <h3>InfluxDB Weather Data</h3>
 
-<button @onclick="LoadData">Refresh</button>
+<button class="btn btn-primary" @onclick="LoadData">Refresh</button>
 
 @if (rows is null)
 {
@@ -23,6 +39,7 @@ else
 				<th>Temperature</th>
 				<th>Humidity</th>
 				<th>Pressure</th>
+				<th>Wind Speed</th>
 				<th>Date</th>
 			</tr>
 		</thead>
@@ -34,24 +51,10 @@ else
 					<td>@row.temperature</td>
 					<td>@row.humidity</td>
 					<td>@row.pressure</td>
+					<td>@row.wind_speed</td>
 					<td>@row.time</td>
 				</tr>
 			}
 		</tbody>
 	</table>
-}
-
-@code {
-	private List<InfluxRow>? rows;
-
-	protected override async Task OnInitializedAsync()
-	{
-		await LoadData();
-	}
-
-	private async Task LoadData()
-	{
-		rows = await InfluxQueryService.QueryAsync();
-		StateHasChanged();
-	}
 }
