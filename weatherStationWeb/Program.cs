@@ -8,16 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-
-
 builder.Services.AddHostedService<MqttInfluxService>();
-// builder.Services.AddHostedService(sp => sp.GetRequiredService<MqttInfluxService>());
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<InfluxQueryService>();
 
 var app = builder.Build();
-
-// app.MapHub<mqttHub>("/Hub");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -31,7 +26,6 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
-
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
