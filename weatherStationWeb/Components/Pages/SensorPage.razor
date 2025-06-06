@@ -2,6 +2,9 @@
 @using weatherStationWeb.Services
 @using ApexCharts
 @inject InfluxQueryService InfluxQueryService
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+@using Microsoft.AspNetCore.SignalR.Client
 @rendermode InteractiveServer
 
 @code {
@@ -10,6 +13,7 @@
 
 	private List<InfluxRow> sensorData = new();
 	private bool afterFirstRender = false;
+	private HubConnection? hubConnection;
 
 	private ApexChart<InfluxRow> temperatureChart = new();
 	private ApexChart<InfluxRow> pressureChart = new();
@@ -62,7 +66,28 @@
 	};
 	protected override async Task OnInitializedAsync()
 	{
+		hubConnection = new HubConnectionBuilder()
+		.WithUrl(NavigationManager.ToAbsoluteUri("/mqttHub"))
+		.Build();
 		await Task.Delay(1);
+		hubConnection.On("ReceiveDataUpdate", async () =>
+		{
+			Console.WriteLine("Received DataUpdate");
+			await LoadData();
+			await InvokeAsync(StateHasChanged);
+			await RefreshCharts();
+			await InvokeAsync(StateHasChanged);
+		});
+
+		try
+		{
+			await hubConnection.StartAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error starting SignalR connection: {ex.Message}");
+		}
+
 		await LoadData();
 		afterFirstRender = true;
 	}
@@ -89,11 +114,19 @@
 	{
 		sensorData = await InfluxQueryService.QueryAsync();
 		sensorData = sensorData.Where(row => row.sensor == sensorName).ToList();
-		StateHasChanged();
+		@* StateHasChanged(); *@
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (hubConnection is not null)
+		{
+			await hubConnection.DisposeAsync();
+		}
 	}
 }
 
-<button @onclick=@( async () => { await LoadData(); await RefreshCharts(); })>Refresh</button>
+<button @onclick=@( async () => { await LoadData(); await RefreshCharts(); await InvokeAsync(StateHasChanged); })>Refresh</button>
 
 <div>
 	<h3>Newest Data</h3>

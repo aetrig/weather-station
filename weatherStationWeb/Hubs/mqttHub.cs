@@ -5,8 +5,8 @@ namespace weatherStationWeb.Hubs;
 
 public class mqttHub : Hub
 {
-	public async Task newData()
+	public async Task SendDataUpdate()
 	{
-		await Clients.All.SendAsync("newData");
+		await Clients.All.SendAsync("ReceiveDataUpdate");
 	}
 }

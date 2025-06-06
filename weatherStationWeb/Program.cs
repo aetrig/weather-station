@@ -8,9 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+
+
 builder.Services.AddHostedService<MqttInfluxService>();
 // builder.Services.AddHostedService(sp => sp.GetRequiredService<MqttInfluxService>());
-// builder.Services.AddSignalR();
+builder.Services.AddSignalR();
 builder.Services.AddSingleton<InfluxQueryService>();
 
 var app = builder.Build();
@@ -30,7 +32,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapHub<mqttHub>("/mqttHub");
 
 app.Run();

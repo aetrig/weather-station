@@ -7,6 +7,8 @@ using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
 using System.Text;
 using InfluxDB3.Client.Write;
+using Microsoft.AspNetCore.SignalR; // Add this using statement
+using weatherStationWeb.Hubs; // Add this using statement
 
 namespace weatherStationWeb.Services;
 
@@ -15,8 +17,11 @@ public class MqttInfluxService : BackgroundService
 	private IMqttClient mqttClient = null!;
 	private InfluxDBClient DbClient = null!;
 
-	public event Action? newDataReceived;
-
+	private IHubContext<mqttHub> hubContext;
+	public MqttInfluxService(IHubContext<mqttHub> hubContext) // Inject via constructor
+	{
+		this.hubContext = hubContext;
+	}
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
 		DotEnv.Load();
@@ -52,7 +57,9 @@ public class MqttInfluxService : BackgroundService
 			var point = PointData.Measurement("weather").SetTag("sensor", splitTopic[1]).SetField(splitTopic[2], payload).SetTimestamp(DateTime.UtcNow);
 			await DbClient.WritePointAsync(point: point);
 
-			newDataReceived?.Invoke();
+			Console.WriteLine("Before hubContext call");
+			await hubContext.Clients.All.SendAsync("ReceiveDataUpdate");
+			Console.WriteLine("After hubContext call");
 		});
 
 		var connectResult = await mqttClient.ConnectAsync(options, CancellationToken.None);
