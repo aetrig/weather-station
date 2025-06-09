@@ -53,7 +53,22 @@ public class MqttInfluxService : BackgroundService
 			string topic = e.ApplicationMessage.Topic;
 			string payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 			string[] splitTopic = topic.Split("/");
-
+			if (splitTopic[2] == "temperature")
+			{
+				payload = payload.Replace("C", "");
+			}
+			if (splitTopic[2] == "pressure")
+			{
+				payload = payload.Replace("hPa", "");
+			}
+			if (splitTopic[2] == "humidity")
+			{
+				payload = payload.Replace("%", "");
+			}
+			if (splitTopic[2] == "wind_speed")
+			{
+				payload = payload.Replace("m/s", "");
+			}
 			var point = PointData.Measurement("weather").SetTag("sensor", splitTopic[1]).SetField(splitTopic[2], payload).SetTimestamp(DateTime.UtcNow);
 			await DbClient.WritePointAsync(point: point);
 
