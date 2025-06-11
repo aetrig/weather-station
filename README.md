@@ -37,10 +37,6 @@ Creating a table
 ```
 influxdb3 create table weather --database weather-station
 ```
-Insert dummy data
-```
-influxdb3 
-```
 
 Checking if database is working
 ```
